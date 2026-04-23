@@ -210,12 +210,17 @@ def output_strs():
 
 @pytest.fixture
 def model_id():
-    return "/data/a5-alignment/models/Qwen2.5-Math-1.5B"
+    # return "/data/a5-alignment/models/Qwen2.5-Math-1.5B"
+    return os.environ.get("CS336_MODEL_ID", "Qwen/Qwen2.5-Math-1.5B")
 
 
 @pytest.fixture
 def tokenizer(model_id):
-    return AutoTokenizer.from_pretrained(model_id)
+    # return AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer
 
 
 @pytest.fixture
