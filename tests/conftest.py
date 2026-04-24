@@ -223,9 +223,15 @@ def tokenizer(model_id):
     return tokenizer
 
 
+# @pytest.fixture
+# def model(model_id):
+#     return AutoModelForCausalLM.from_pretrained(model_id)
+
 @pytest.fixture
 def model(model_id):
-    return AutoModelForCausalLM.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
+    model.eval()
+    return model
 
 
 @pytest.fixture

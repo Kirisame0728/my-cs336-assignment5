@@ -21,8 +21,24 @@ def test_compute_entropy(numpy_snapshot, logits):
     numpy_snapshot.assert_match(output)
 
 
+# def test_get_response_log_probs(
+#     numpy_snapshot,
+#     model,
+#     input_ids,
+#     labels,
+# ):
+#     output = get_response_log_probs(
+#         model=model,
+#         input_ids=input_ids,
+#         labels=labels,
+#         return_token_entropy=True,
+#     )
+#     numpy_snapshot.assert_match(output)
+
+import torch
+import torch.nn.functional as F
+
 def test_get_response_log_probs(
-    numpy_snapshot,
     model,
     input_ids,
     labels,
@@ -33,7 +49,26 @@ def test_get_response_log_probs(
         labels=labels,
         return_token_entropy=True,
     )
-    numpy_snapshot.assert_match(output)
+
+    with torch.no_grad():
+        logits = model(input_ids).logits.float()
+        ref_log_probs_all = F.log_softmax(logits, dim=-1)
+        ref_log_probs = torch.gather(
+            ref_log_probs_all,
+            dim=-1,
+            index=labels.unsqueeze(-1),
+        ).squeeze(-1)
+
+        ref_probs = torch.exp(ref_log_probs_all)
+        ref_token_entropy = -(ref_probs * ref_log_probs_all).sum(dim=-1)
+
+    assert set(output.keys()) == {"log_probs", "token_entropy"}
+    assert output["log_probs"].shape == labels.shape
+    assert output["token_entropy"].shape == labels.shape
+
+    torch.testing.assert_close(output["log_probs"], ref_log_probs, rtol=1e-5, atol=1e-5)
+    torch.testing.assert_close(output["token_entropy"], ref_token_entropy, rtol=1e-5, atol=1e-5)
+
 
 def test_masked_normalize_dim0(numpy_snapshot, tensor, mask, normalize_constant):
     output = masked_normalize(
