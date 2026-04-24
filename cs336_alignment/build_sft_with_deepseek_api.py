@@ -12,7 +12,7 @@ OUTPUT_PATH = "data/a5-alignment/MATH/sft.jsonl"
 
 MODEL_NAME = "deepseek-r1"
 
-MAX_EXAMPLES = 1024
+MAX_EXAMPLES = 512
 SLEEP_SECONDS = 1.0
 PRINT_EVERY = 4
 MAX_RETRIES = 6
